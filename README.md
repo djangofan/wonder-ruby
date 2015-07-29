@@ -2,6 +2,8 @@
 
 Hi! I wrote this ruby gem to interact with the CDC Wonder API. Through Wonder, you can access all kinds of amazing (hence Wonder?) datasets like Births, Cancer Statistics and Mortality. 
 
+The API is a bit gnarly to quickly get your head around (lots of xml posting with pretty deep query ability), so, this gem simplifies the whole process.
+
 ## Installing the Wonder Gem
 
 Open up Terminal.App or your favorite shell, and install the gem:

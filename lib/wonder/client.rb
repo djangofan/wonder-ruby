@@ -7,11 +7,13 @@ module Wonder
       attr_accessor :client
       attr_accessor :database
       attr_accessor :request_parameters
+      attr_accessor :data
 
       def initialize
         @request_parameters = {}
         set_client if @client.nil?
         set_parameters
+        @data = []
         @client
       end
 
@@ -26,7 +28,6 @@ module Wonder
       def set_client
         @client = Faraday.new(:url => 'http://wonder.cdc.gov/controller/datarequest/') do |faraday|
           faraday.request  :url_encoded
-          faraday.response :logger
           faraday.adapter  Faraday.default_adapter
         end
         @client

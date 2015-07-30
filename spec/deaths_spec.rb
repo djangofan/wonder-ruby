@@ -20,7 +20,7 @@ describe Wonder do
   end
 
   it 'sets the request_xml' do
-    expect(@wonder.request_xml.length).to eq 4075
+    expect(@wonder.request_xml.length).to eq 4081
   end
 
   it 'gets the data' do
@@ -50,6 +50,79 @@ describe Wonder do
         @wonder.group_by('D76.V700')
       }.to raise_error
     end
+  end
+
+  context 'by_dates' do
+
+    it 'proper_date?' do
+      expect(@wonder.proper_date?('2001/01')).to eq true
+      expect(@wonder.proper_date?('2001/1')).to eq false
+      expect(@wonder.proper_date?('2001')).to eq true
+      expect(@wonder.proper_date?('1981/01')).to eq false
+      expect(@wonder.proper_date?('2015')).to eq false
+      expect(@wonder.proper_date?(2013)).to eq true
+    end
+
+    it 'by_dates' do
+      #default
+      expect(@wonder.by_dates).to eq '*All*'
+      #single year number
+      expect(@wonder.by_dates(2010)).to eq 2010
+      expect(@wonder.dates).to eq 2010
+      #single year with month
+      expect(@wonder.by_dates('2010/12')).to eq '2010/12'
+      #multiples years
+      expect(@wonder.by_dates(['2010', 2011])).to eq ['2010', 2011]
+      expect(@wonder.dates).to eq ['2010', 2011]
+      #multiples years with months
+      expect(@wonder.by_dates(['2010/01', '2011/01'])).to eq ["2010/01", "2011/01"]
+    end
+
+    context 'gets with proper dates' do
+      it 'gets with single year' do
+        @wonder.by_dates(2010)
+        expect(@wonder.dates).to eq 2010
+        expect(@wonder.default_parameters['F_D76.V1']).to eq 2010
+        VCR.use_cassette('deaths_by_date_2010') do
+          @wonder.post
+        end
+        expect(@wonder.data[-1]).to eq ["Total", "2,468,435", "308,745,538", "799.5"]
+      end
+
+      it 'gets with single year and month' do
+        @wonder.by_dates('2010/01')
+        expect(@wonder.dates).to eq '2010/01'
+        expect(@wonder.default_parameters['F_D76.V1']).to eq '2010/01'
+        VCR.use_cassette('deaths_by_date_2010_01') do
+          @wonder.post
+        end
+        expect(@wonder.data[-1]).to eq ["Total", "222,783", "Not Applicable", "Not Applicable"]
+      end
+
+      it 'gets with several years' do
+        @wonder.by_dates([2010,2011])
+        expect(@wonder.dates).to eq [2010,2011]
+        expect(@wonder.default_parameters['F_D76.V1']).to eq [2010,2011]
+        VCR.use_cassette('deaths_by_date_2010_2011') do
+          @wonder.post
+        end
+        expect(@wonder.data[-1]).to eq ["Total", "4,983,893", "620,337,455", "803.4"]
+      end
+
+      it 'gets with several years and months' do
+        @wonder.by_dates(['2010/01','2010/02','2010/03'])
+        expect(@wonder.dates).to eq ['2010/01','2010/02','2010/03']
+        expect(@wonder.default_parameters['F_D76.V1']).to eq ['2010/01','2010/02','2010/03']
+        VCR.use_cassette('deaths_by_date_2010_q1') do
+          @wonder.post
+        end
+        expect(@wonder.data[-1]).to eq ["Total", "641,943", "Not Applicable", "Not Applicable"]
+      end
+
+
+    end
+
+
   end
 
 end

@@ -8,6 +8,8 @@ module Wonder
       attr_accessor :database
       attr_accessor :request_parameters
       attr_accessor :data
+      attr_accessor :dates
+      attr_accessor :request_object
 
       def initialize
         @request_parameters = {}
@@ -39,7 +41,16 @@ module Wonder
         @request_object.tag!('request-parameters') do |r|
           r.tag!('parameter') { |t| t.name('accept_datause_restrictions'); t.value(true)}
           @request_parameters.keys.each do |p|
-            r.tag!('parameter') { |v| v.name(p); v.value(@request_parameters[p])}
+            r.tag!('parameter') do |v| 
+              v.name(p); 
+              if @request_parameters[p].is_a? Array
+                @request_parameters[p].each do |a|
+                  v.value(a)  
+                end
+              else
+                v.value(@request_parameters[p])
+              end
+            end
           end
           r.tag!('parameter') { |t| t.name('action-Send'); t.value('Send')}
           r.tag!('parameter') { |t| t.name('stage'); t.value('request')}

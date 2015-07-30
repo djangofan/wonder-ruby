@@ -8,6 +8,7 @@ module Wonder
     end
 
     def post
+      @request_parameters = default_parameters
       response = @client.post do |req|
         req.url @database
         req.body = {request_xml: request_xml}
@@ -148,12 +149,41 @@ module Wonder
       }
     end
 
-    def where_parameters
-      {"V_D76.V9"=>"", "V_D76.V10"=>"", "V_D76.V27"=>"", "V_D76.V19"=>"*All*", "V_D76.V11"=>"*All*", "V_D76.V5"=>"*All*", "V_D76.V51"=>"*All*", "V_D76.V52"=>"*All*", "V_D76.V6"=>"00", "V_D76.V7"=>"*All*", "V_D76.V17"=>"*All*", "V_D76.V8"=>"*All*", "V_D76.V1"=>"", "V_D76.V24"=>"*All*", "V_D76.V20"=>"*All*", "V_D76.V21"=>"*All*", "V_D76.V2"=>"", "V_D76.V4"=>"*All*", "V_D76.V12"=>"*All*", "V_D76.V22"=>"*All*", "V_D76.V23"=>"*All*", "V_D76.V25"=>"*All*"}
+    def variable_parameters
+      @variables ||= {"V_D76.V9"=>"", "V_D76.V10"=>"", "V_D76.V27"=>"", "V_D76.V19"=>"*All*", "V_D76.V11"=>"*All*", "V_D76.V5"=>"*All*", "V_D76.V51"=>"*All*", "V_D76.V52"=>"*All*", "V_D76.V6"=>"00", "V_D76.V7"=>"*All*", "V_D76.V17"=>"*All*", "V_D76.V8"=>"*All*", "V_D76.V1"=>"", "V_D76.V24"=>"*All*", "V_D76.V20"=>"*All*", "V_D76.V21"=>"*All*", "V_D76.V2"=>"", "V_D76.V4"=>"*All*", "V_D76.V12"=>"*All*", "V_D76.V22"=>"*All*", "V_D76.V23"=>"*All*", "V_D76.V25"=>"*All*"}
+    end
+
+    #by_dates 2001/01 to 2002/01
+    #by_dates all
+    #by_dates ['2001/01','2002/01']
+    def by_dates(*args)
+      if args.size == 0
+        @dates = '*All*'
+      elsif args.size == 1
+        if args[0].is_a? Array
+          @dates = args[0].map do |d|
+            raise "Not a proper date. Strings should be of YYYY/MM or just YYYY" if !proper_date?(d)
+            d
+          end
+        else
+          raise "Not a proper date. Strings should be of YYYY/MM or just YYYY" if !proper_date?(args[0])
+          @dates = args[0]
+        end
+      end      
+      @dates
+    end
+
+    def proper_date?(date)
+      date = date.to_s
+      if date.include?('/')        
+        !date.match(/(20(01|02|03|04|05|06|07|08|09|10|11|12|13)\/(01|02|03|04|05|06|07|08|09|10|11|12))/).nil?
+      else
+        !date.match(/20(01|02|03|04|05|06|07|08|09|10|11|12|13)$/).nil?
+      end
     end
 
     def finder_parameters
-      {"F_D76.V9"=>"*All*", "F_D76.V10"=>"*All*", "F_D76.V27"=>"*All*", "F_D76.V1"=>"2013", "F_D76.V2"=>"*All*"}
+      {"F_D76.V9"=>"*All*", "F_D76.V10"=>"*All*", "F_D76.V27"=>"*All*", "F_D76.V1"=>@dates || "*All*", "F_D76.V2"=>"*All*"}
     end
 
     def misc_parameters
@@ -164,14 +194,14 @@ module Wonder
       {'VM_D76.M6_D76.V1_S' => '*All*',
       'VM_D76.M6_D76.V7' => '*All*',
       'VM_D76.M6_D76.V17' => '*All*',
-      'VM_D76.M6_D76.V10' => '',
+      'VM_D76.M6_D76.V10' => '*All*',
       'VM_D76.M6_D76.V8' => '*All*'
       }
     end
 
     def default_parameters
-      [group_by_parameters, measure_parameters, misc_parameters, age_adjusted_parameters, 
-            finder_parameters, where_parameters].each_with_object({}) { |oh, nh| nh.merge!(oh)}
+      [group_by_parameters, variable_parameters, measure_parameters, misc_parameters, age_adjusted_parameters, 
+            finder_parameters].each_with_object({}) { |oh, nh| nh.merge!(oh)}
     end
 
   end
